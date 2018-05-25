@@ -1,0 +1,178 @@
+<nav class="navbar navbar-dark bg-primary">
+  <div class="nav-item w-25">
+    <div class="input-group ">
+      <div class="input-group-prepend">
+        <label class="input-group-text" for="inputGroupSelect01">Board</label>
+      </div>
+      <select class="custom-select" id="inputGroupSelect01" (change)="changeBoard($event)">
+        <option *ngFor="let b of boards; let id = index" [value]="b[0]">{{b[1]}}</option>
+      </select>
+    </div>
+  </div>
+
+
+  <span class="text-right">
+    <span class="navbar-text text-white">
+      Willkommen {{trelloUser?.fullName}}
+    </span>
+    <button class="btn ml-2" (click)="logout()">Logout</button>
+  </span>
+</nav>
+
+<div *ngIf="isReady()" class="spinner-box">
+  <div class="spinner">
+    <div class="rect1"></div>
+    <div class="rect2"></div>
+    <div class="rect3"></div>
+    <div class="rect4"></div>
+    <div class="rect5"></div>
+  </div>
+</div>
+
+<div class="container-fluid mt-3">
+  <div class="row">
+
+
+    <div class="col-sm">
+      <div class="card bg-light">
+        <div class="card-header bg-light border-0 pl-3">
+        <h6 class="my-0 font-weight-bold small text-secondary" style="text-transform: uppercase">
+          <span class="feather" class="mr-1"><i-alert-triangle class="i-small pt-1"></i-alert-triangle></span>
+          Überfällig
+        </h6>
+       </div>
+
+        <div *ngIf="cards?.overdue.length < 1" class="alert alert-primary m-1" role="alert">
+          Keine überfälligen Karten.
+        </div>
+
+        <div *ngFor="let c of cards?.overdue" class="m-1">
+          <div class="card bg-white">
+            <div class="card-body p-2">
+              <p class="text-left mb-3 text-dark small font-weight-bold">{{c.name}}</p>
+
+              <span class="text-left bg-danger small text-white p-1 rounded">
+                <i-clock class="i-small mr-1"></i-clock>
+                {{getDayDiff(c.badges.due)}}
+              </span>
+
+
+                <a *ngIf="c.desc.length > 0" class="small float-right" data-toggle="collapse" href="#collapse{{c.id}}" role="button" aria-expanded="false" aria-controls="collapseExample">
+                  <i-chevron-down class="i-small text-secondary"></i-chevron-down>Beschreibung
+                </a>
+
+                <div *ngIf="c.desc.length > 0" class="collapse mt-1" id="collapse{{c.id}}">
+                  <div class="card card-body small p-3">
+                   {{c.desc}}
+                  </div>
+                </div>
+
+            </div>
+          </div>
+        </div>
+
+    </div>
+    </div>
+
+    <div class="col">
+      <div class="card bg-light">
+        <div class="card-header bg-light border-0 pl-3">
+          <h6 class="my-0 font-weight-bold small text-secondary" style="text-transform: uppercase">
+            <span class="feather" class="mr-1"><i-info class="i-small pt-1"></i-info></span>
+            Heute fällig
+          </h6>
+        </div>
+
+        <div *ngIf="cards?.overdueToday.length < 1" class="alert alert-primary m-1" role="alert">
+          Heute ist nichts fällig.
+        </div>
+
+        <div *ngFor="let c of cards?.overdueToday" class="m-1">
+          <div class="card bg-white">
+            <div class="card-body p-2">
+              <p class="text-left mb-3 text-dark small font-weight-bold">{{c.name}}</p>
+              <span class="text-left bg-warning small text-dark p-1 rounded"><i-clock class="i-small mr-1"></i-clock> Heute</span>
+
+              <a *ngIf="c.desc.length > 0" class="small float-right" data-toggle="collapse" href="#collapse{{c.id}}" role="button" aria-expanded="false" aria-controls="collapseExample">
+                <i-chevron-down class="i-small text-secondary"></i-chevron-down>Beschreibung
+              </a>
+
+              <div *ngIf="c.desc.length > 0" class="collapse mt-1" id="collapse{{c.id}}">
+                <div class="card card-body small p-3">
+                  {{c.desc}}
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+
+    <div class="col">
+      <div class="card bg-light">
+        <div class="card-header bg-light border-0 pl-3">
+          <h6 class="my-0 font-weight-bold small text-secondary" style="text-transform: uppercase">
+            <span class="feather" class="mr-1"><i-inbox class="i-small"></i-inbox></span>
+            Inbox
+          </h6>
+        </div>
+
+        <div *ngIf="comments?.sortedInbox.length < 1" class="alert alert-primary m-1" role="alert">
+          Nichts in der Inbox
+        </div>
+
+
+        <div class="card bg-white m-1" *ngIf="comments?.sortedInbox.length > 0">
+          <div class="card-body p-0 pr-3 px-3 pt-1 pb-1">
+
+            <div class="media text-muted" *ngFor="let oc of comments.sortedInbox; let isLast = last">
+              <p class="media-body pb-2 pt-2 mb-0 small border-bottom border-gray" [ngClass]="{'border-0' : isLast}">
+                <span class="d-block text-primary">{{oc[1][0].memberCreator.fullName}}:</span>
+                {{oc[1][0].data.text}}
+                <strong class="d-block text-gray-dark">@ {{oc[0].name}}</strong>
+              </p>
+            </div>
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card bg-light">
+        <div class="card-header bg-light border-0 px-3">
+          <h6 class="my-0 font-weight-bold small text-secondary" style="text-transform: uppercase">
+            <span class="feather" class="mr-1"><i-share class="i-small"></i-share></span>
+            Outbox
+          </h6>
+        </div>
+
+        <div *ngIf="comments?.sortedOutbox.length < 1" class="alert alert-primary m-1" role="alert">
+          Nichts in der Outbox
+        </div>
+
+
+        <div class="card bg-white m-1" *ngIf="comments?.sortedOutbox.length > 0">
+            <div class="card-body p-0 pr-3 px-3 pt-1 pb-1">
+
+              <div class="media text-muted" *ngFor="let oc of comments?.sortedOutbox; let isLast = last">
+                <p class="media-body pb-2 pt-2 mb-0 small border-bottom border-gray" [ngClass]="{'border-0' : isLast}">
+                  {{oc[1][0].data.text}}
+                  <strong class="d-block text-gray-dark">@ {{oc[0].name}}</strong>
+                </p>
+              </div>
+
+
+            </div>
+          </div>
+      </div>
+    </div>
+
+
+
+  </div>
+</div>
